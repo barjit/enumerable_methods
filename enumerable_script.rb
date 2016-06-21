@@ -2,99 +2,117 @@
 
 module Enumerable
   
-  puts "Hello World!"
-
   def my_each
-    i=0
-    while self[i]
-      yield self[i]
+    i = 0
+    while i < self.length
+      yield(self[i])
       i += 1
     end
     self
   end
-
+  
   def my_each_with_index
-    i=0
-    while self[i]
+    i = 0
+    while i < self.length
       yield(self[i], i)
       i += 1
     end
     self
   end
-
+  
   def my_select
     result = []
-    i = 0
-    while self[i]
-      if yield self[i]
-        result << self[i]
+    self.my_each do |i|
+      if yield(i)
+        result << i
       end
-      i += 1
     end
     result
   end
-
+  
   def my_all?
-    self.my_each do |i| 
-      return false unless yield(i)
+    self.my_each do |e|
+      if !yield(e)
+        false
+      else
+        true
+      end
     end
-    return true
   end
-
+  
   def my_any?
-    self.my_each do |i| 
-      return true unless !yield(i)
+    self.my_each do |e|
+      if yield(e)
+        true
+      else
+        false
+      end
     end
-    return false
   end
-
+  
   def my_none?
-    self.my_each do |i|
-      return false unless !yield(i)
+    self.my_each do |e|
+      if yield(e)
+        false
+      else
+        true
+      end
     end
-    return true
   end
-
-  def my_count (arg=0)
+  
+  def my_count
+    counter = 0
     if block_given?
-      self.my_select {|i| yield(i)}.length
-    elsif arg != 0
-      self.my_select {|i| i == arg}.length
-    else
+      self.my_each do |e|
+        if yield(e)
+          counter += 1
+        end
+      end
+      counter
+    else                ## need third option if argument given (not block)
       self.length
     end
   end
-
+  
+  #my_map block
   def my_map
     result = []
-    i = 0
-    while self[i]
-      result << yield(self[i])
-      i += 1      
-    end
-    result    
-  end
-
-  def my_map_proc(proc)
-    result = []
-    i = 0
-    while self[i]
-      result << proc.call(i)
+    self.my_each do |e|
+      result << yield(e)
     end
     result
   end
-
-  def my_inject (memo=0)
-    self.my_each do |i|
-      memo = yield(memo, i)
+  
+  # source: Jim Weir gist
+  def my_inject(initial = nil)
+    acc = initial
+    self.my_each do |item|
+      if acc.nil?
+        acc = item
+      else
+        acc = yield(acc, item)
+      end
     end
-    memo
+    acc
   end
+# --------------------------------------------------
+#
+# def multiply_els(args)
+#   args.my_inject {|memo, obj| memo * obj }
+# end
+#
+#   --------------------------------------------------
 
+  #my_map proc
+  
+  the_proc = Proc.new {|e| e * e}
+  
+  def my_map
+    result = []
+    self.my_each do |element|
+      result << the_proc.call(element)
+    end
+    result
+  end 
 
 end
-
-
-def multiply_els(arr)
-    total = arr.my_inject(1) {|total, element| total * element}
-  end
